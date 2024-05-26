@@ -1,36 +1,87 @@
-#include <Account.h>
-#include <Transaction.h>
+#include "Account.h"
+#include "Transaction.h"
+
 #include <gtest/gtest.h>
 
-TEST(Transaction, Banking) {
-    const int initial_balance_Alice = 10000;
-    const int initial_balance_Bob = 2000;
-    const int transaction_fee = 50;
-
-    Account Alice(0, initial_balance_Alice), Bob(1, initial_balance_Bob);
-    Transaction test_tran;
-
-    ASSERT_EQ(test_tran.fee(), 1);
-    test_tran.set_fee(transaction_fee);
-    ASSERT_EQ(test_tran.fee(), transaction_fee);
-
-    ASSERT_THROW(test_tran.Make(Alice, Alice, 2000), std::logic_error);
-    ASSERT_THROW(test_tran.Make(Alice, Bob, -100), std::invalid_argument);
-    ASSERT_THROW(test_tran.Make(Alice, Bob, 50), std::logic_error);
-
-    if (test_tran.fee() * 2 - 1 >= 200) {
-        ASSERT_FALSE(test_tran.Make(Alice, Bob, test_tran.fee() * 2 - 1));
+TEST(Account, check1) {
+    Account account(1000, 2000);
+    EXPECT_EQ(account.id(), 1000);
+    EXPECT_EQ(account.GetBalance(), 2000);
+    EXPECT_EQ(account.GetBalance(), 2000);
+    Account Count1(110, 1000);
+    Account Count2(110, 1000);
+    Transaction transaction;
+    try {
+        transaction.Make(Count1, Count2, 1000);
+        FAIL() << "expected error" << std::endl;
+    } catch(std::logic_error& err) {
+        EXPECT_EQ(err.what(), std::string("invalid action"));
+    } catch(...) {
+        FAIL() << "expected logic error" << std::endl;
     }
+}
 
-    Alice.Lock();
-    ASSERT_THROW(test_tran.Make(Alice, Bob, 2000), std::runtime_error);
-    Alice.Unlock();
+TEST(Account, check2) {
+    Account test(1,2);
+    
+    ASSERT_EQ(test.GetBalance(), 2);
+    
+    ASSERT_THROW(test.ChangeBalance(100), std::runtime_error);
+    
+    test.Lock();
+    
+    ASSERT_NO_THROW(test.ChangeBalance(100));
+    
+    ASSERT_EQ(test.GetBalance(), 102);
+    
+    ASSERT_THROW(test.Lock(), std::runtime_error);
+    
+    test.Unlock();
+    ASSERT_THROW(test.ChangeBalance(102), std::runtime_error);
+}
 
-    ASSERT_TRUE(test_tran.Make(Alice, Bob, 2000));
-    ASSERT_EQ(Bob.GetBalance(), initial_balance_Bob + 2000);	
-    ASSERT_EQ(Alice.GetBalance(), initial_balance_Alice - 2000 - transaction_fee);
+TEST(Transaction, id_check) {
+    Account Check1(11, 100);
+    Account Check2(11, 100);
+    Transaction transaction;
+    
+    try {
+        transaction.Make(Check1, Check2, 100);
+        FAIL() << "expected error" << std::endl;
+    } catch(std::logic_error& err) {
+        EXPECT_EQ(err.what(), std::string("invalid action"));
+    } catch(...) {
+        FAIL() << "expected logic error" << std::endl;
+    }
+}
 
-    ASSERT_FALSE(test_tran.Make(Alice, Bob, 8000));
-    ASSERT_EQ(Bob.GetBalance(), initial_balance_Bob + 2000);	
-    ASSERT_EQ(Alice.GetBalance(), initial_balance_Alice - 2000 - transaction_fee);
+TEST(Transaction, sum_check) {
+    Account Check1(1, 1000);
+    Account Check2(12, 100);
+    Transaction transaction;
+    
+    try {
+        transaction.Make(Check1, Check2, -100);
+        FAIL() << "expected error" << std::endl;
+    } catch(std::invalid_argument& arg) {
+        
+        EXPECT_EQ(arg.what(), std::string("sum can't be negative"));
+    } catch(...) {
+        FAIL() << "expected argument error" << std::endl;
+    }
+}
+
+
+
+TEST(Transaction, change_balance) {
+    Account Check1(173, 1000);
+    Account Check2(12, 100);
+    try {
+        Check1.ChangeBalance(30);
+        FAIL() << "expected error" << std::endl;
+    } catch(std::runtime_error& time) {
+        EXPECT_EQ(time.what(), std::string("at first lock the account"));
+    } catch(...) {
+        FAIL() << "expected time error" << std::endl;
+    }
 }
