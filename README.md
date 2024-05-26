@@ -1,5 +1,4 @@
 ### Laboratory V
-[![Coverage Status](https://coveralls.io/repos/github/beq286/lab05/badge.svg?branch=main)](https://coveralls.io/github/beq286/lab05?branch=main)
 ### Задание
 1. Создайте `CMakeList.txt` для библиотеки *banking*.
 2. Создайте модульные тесты на классы `Transaction` и `Account`.
